@@ -1,6 +1,5 @@
 // server.js
 import express from "express";
-import fetch from "node-fetch"; // Make sure it's in package.json dependencies
 
 const app = express();
 app.use(express.json());
@@ -30,11 +29,11 @@ app.get("/", (req, res) => {
 });
 
 // === SELF-PING EVERY 14 MINUTES ===
-const SELF_PING_INTERVAL = 14 * 60 * 1000; // 14 minutes in ms
+const SELF_PING_INTERVAL = 14 * 60 * 1000; // 14 minutes
 setInterval(async () => {
   try {
-    const response = await fetch("https://tradingwebserver.onrender.com/");
-    console.log("🔁 Self-ping sent:", response.status);
+    const res = await fetch("https://tradingwebserver.onrender.com/");
+    console.log("🔁 Self-ping sent:", res.status);
   } catch (err) {
     console.error("❌ Self-ping failed:", err.message);
   }
