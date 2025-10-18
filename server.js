@@ -28,8 +28,8 @@ app.get("/", (req, res) => {
   res.send("✅ Trading Webhook Server is alive and running.");
 });
 
-// === SELF-PING EVERY 14 MINUTES ===
-const SELF_PING_INTERVAL = 14 * 60 * 1000; // 14 minutes
+// === SELF-PING EVERY 10 MINUTES ===
+const SELF_PING_INTERVAL = 10 * 60 * 1000; // 14 minutes
 setInterval(async () => {
   try {
     const res = await fetch("https://tradingwebserver.onrender.com/");
