@@ -2,69 +2,51 @@ import express from "express";
 import fetch from "node-fetch";
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-// ✅ Support both JSON and plain text alerts
-app.use(express.text({ type: "*/*" }));
 app.use(express.json());
 
 // --- Webhook endpoint ---
-app.post("/webhook", async (req, res) => {
-  try {
-    let data = req.body;
+app.post("/webhook", (req, res) => {
+  console.log("Alert received:", req.body);
 
-    // Parse JSON if sent as string
-    if (typeof data === "string") {
-      try {
-        data = JSON.parse(data);
-      } catch {
-        data = { signal: data.trim() };
-      }
-    }
+  const { signal, ticker, price } = req.body;
 
-    console.log("Alert received:", data);
-
-    const { signal, ticker, price } = data;
-
-    if (!signal) {
-      console.log("⚠️ Unknown signal received:", data);
-      return res.status(400).send("Invalid alert format");
-    }
-
-    // --- Example trading logic ---
-    if (signal.toLowerCase() === "buy") {
-      console.log(`🟢 BUY signal received for ${ticker || "unknown"} at ${price || "?"}`);
-      // TODO: Add actual trade logic here
-    } else if (signal.toLowerCase() === "sell") {
-      console.log(`🔴 SELL signal received for ${ticker || "unknown"} at ${price || "?"}`);
-      // TODO: Add actual trade logic here
-    } else {
-      console.log("⚠️ Unknown signal:", signal);
-    }
-
-    res.status(200).send("Alert processed");
-  } catch (err) {
-    console.error("❌ Error processing webhook:", err);
-    res.status(500).send("Server error");
+  if (!signal) {
+    console.log("⚠️ No signal in request.");
+    return res.status(400).send("Missing signal");
   }
+
+  const normalized = signal.toLowerCase();
+
+  // --- Simulated trade logic ---
+  if (normalized.includes("long") || normalized.includes("buy")) {
+    console.log(`🟢 Simulated LONG / BUY trade for ${ticker || "?"} at ${price || "?"}`);
+    // PLACE YOUR REAL TRADE LOGIC HERE (for example, API call to broker)
+  } else if (normalized.includes("short") || normalized.includes("sell")) {
+    console.log(`🔴 Simulated SHORT / SELL trade for ${ticker || "?"} at ${price || "?"}`);
+    // PLACE YOUR REAL TRADE LOGIC HERE
+  } else if (normalized.includes("exit") || normalized.includes("close")) {
+    console.log(`⚪ Simulated EXIT trade for ${ticker || "?"} at ${price || "?"}`);
+    // PLACE YOUR CLOSE LOGIC HERE
+  } else {
+    console.log(`⚠️ Unknown signal: ${signal}`);
+  }
+
+  res.status(200).send("OK");
 });
 
-// --- Keep server alive (Render self-ping) ---
+// --- Keep-alive ping every 14 minutes to prevent Render sleep ---
+const SELF_URL = "https://tradingwebserver.onrender.com";
 setInterval(async () => {
   try {
-    const response = await fetch("https://tradingwebserver.onrender.com");
-    console.log("🔁 Self-ping sent:", response.status);
+    const response = await fetch(SELF_URL);
+    console.log(`🔁 Self-ping sent: ${response.status}`);
   } catch (err) {
     console.error("❌ Self-ping failed:", err.message);
   }
-}, 14 * 60 * 1000); // every 14 minutes
+}, 10 * 60 * 1000); // 14 minutes
 
-// --- Root route ---
 app.get("/", (req, res) => {
-  res.send("TradingView Webhook Server is running ✅");
+  res.send("✅ Trading Webhook Server is running!");
 });
 
-// --- Start server ---
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+app.listen(3000, () => console.log("🚀 Webhook listening on port 3000"));
